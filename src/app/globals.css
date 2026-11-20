@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { @apply bg-white text-navy-900 antialiased; }
+  h1, h2, h3, h4 { @apply font-display tracking-tight; }
+  ::selection { @apply bg-brand-300 text-navy-950; }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply btn bg-gradient-to-r from-brand-400 to-brand-600 text-white shadow-glow hover:-translate-y-0.5 hover:brightness-110;
+  }
+  .btn-dark { @apply btn bg-navy-900 text-white hover:bg-navy-800; }
+  .btn-outline { @apply btn border border-navy-200 bg-white text-navy-900 hover:border-navy-400 hover:bg-navy-50; }
+  .btn-ghost-light { @apply btn border border-white/25 bg-white/10 text-white backdrop-blur hover:bg-white/20; }
+  .btn-sm { @apply px-3 py-2 text-xs rounded-lg; }
+
+  .input {
+    @apply w-full rounded-xl border border-navy-100 bg-white px-4 py-3 text-sm text-navy-900 placeholder:text-navy-300 outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100;
+  }
+  .label { @apply mb-1.5 block text-sm font-medium text-navy-700; }
+  .card { @apply rounded-2xl border border-navy-100 bg-white shadow-card; }
+
+  .section { @apply py-20 md:py-28; }
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-700;
+  }
+  .text-gradient {
+    @apply bg-gradient-to-r from-brand-300 via-brand-400 to-brand-600 bg-clip-text text-transparent;
+  }
+  .blueprint-grid {
+    background-image:
+      linear-gradient(rgba(122,157,217,.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(122,157,217,.12) 1px, transparent 1px),
+      linear-gradient(rgba(122,157,217,.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(122,157,217,.06) 1px, transparent 1px);
+    background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  }
+  .glass { @apply border border-white/15 bg-white/10 backdrop-blur-xl; }
+}
+
+/* Reveal-on-scroll */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1); }
+.reveal.is-visible { opacity: 1; transform: none; }
+
+.stroke-draw { stroke-dasharray: 1200; stroke-dashoffset: 1200; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .reveal { opacity: 1; transform: none; }
+  .stroke-draw { stroke-dashoffset: 0; }
+}

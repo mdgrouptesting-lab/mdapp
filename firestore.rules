@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function userDoc() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && userDoc().role == 'admin';
+    }
+    function onlyChanges(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
+
+    // ---------- Users ----------
+    // Profiles are CREATED by the server (/api/auth/register) so nobody can make themselves admin.
+    match /users/{uid} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow create: if false;
+      allow update: if isAdmin() || (
+        signedIn() && request.auth.uid == uid
+        && onlyChanges(['name', 'phone', 'address', 'city', 'workType', 'experience', 'about', 'verification', 'updatedAt'])
+        && (
+          !('verification' in request.resource.data.diff(resource.data).affectedKeys())
+          || (resource.data.role == 'worker' && request.resource.data.verification.status == 'pending')
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
+    // ---------- Enquiries (created via server API) ----------
+    match /enquiries/{id} {
+      allow read, update, delete: if isAdmin();
+      allow create: if false;
+    }
+
+    // ---------- Service requests ----------
+    match /serviceRequests/{id} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.clientId == request.auth.uid)
+        || (signedIn() && resource.data.assignedWorkerId == request.auth.uid);
+      allow create: if false; // created via server API (checks membership)
+      allow update: if isAdmin() || (
+        signedIn() && resource.data.assignedWorkerId == request.auth.uid
+        && onlyChanges(['workerImages', 'workerNote', 'status', 'updatedAt'])
+        && request.resource.data.status in ['in_progress', 'work_submitted']
+        && resource.data.status in ['assigned', 'in_progress']
+      );
+      allow delete: if isAdmin();
+    }
+
+    // ---------- Payments (written by server after Razorpay verification, or by admin for cash) ----------
+    match /payments/{id} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------- Blog ----------
+    match /posts/{id} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ---------- Work types ----------
+    match /workTypes/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
